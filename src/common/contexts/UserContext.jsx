@@ -35,13 +35,14 @@ export function UserProvider({ children }) {
       if (firebaseUser) {
         try {
           const idToken = await firebaseUser.getIdToken();
-          const response = await fetch(buildUrl('/auth/profile'), {
+          const response = await fetch(buildUrl('/api/auth/profile'), {
             headers: { Authorization: `Bearer ${idToken}` },
           });
 
           if (response.ok) {
             const backendUserData = await response.json();
-            setUser({ ...firebaseUser, ...backendUserData });
+            // Preserve Firebase prototype methods (getIdToken etc) while merging backend data
+            setUser(Object.assign(firebaseUser, backendUserData));
           } else {
             setUser(firebaseUser);
           }
@@ -83,7 +84,7 @@ export function UserProvider({ children }) {
       const result = await signInWithPopup(auth, googleProvider);
       const idToken = await result.user.getIdToken();
 
-      await fetch(buildUrl('/auth/token'), {
+      await fetch(buildUrl('/api/auth/token'), {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },

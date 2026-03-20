@@ -1,44 +1,47 @@
-import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { useEffect } from 'react';
+import { BrowserRouter, Navigate, Route, Routes, useNavigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './context/AuthContext.jsx';
+import Login from './pages/auth/Login.jsx';
+import Signup from './pages/auth/Signup.jsx';
+import Dashboard from './pages/student/Dashboard.jsx';
+import Workspace from './pages/student/Workspace.jsx';
+import TeacherDashboard from './pages/teacher/TeacherDashboard.jsx';
 
-import {
-  PrivateRoute,
-  PublicOnlyRoute,
-} from '@/common/components/routes/ProtectedRoutes';
-import { UserProvider } from '@/common/contexts/UserContext';
-import NavLayout from '@/common/layouts/NavLayout';
-import AuthCallback from '@/pages/account/AuthCallback';
-import Login from '@/pages/account/Login';
-import RequestPasswordReset from '@/pages/account/RequestPasswordReset';
-import ResetPassword from '@/pages/account/ResetPassword';
-import SignUp from '@/pages/account/SignUp';
-import Home from '@/pages/home/Home';
-import NotFound from '@/pages/not-found/NotFound';
+function RequireAuth({ children, role }) {
+  const { user, loading } = useAuth();
+  if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: '#64748B' }}>Loading…</div>;
+  if (!user) return <Navigate to="/login" replace />;
+  if (role && user.role !== role) return <Navigate to={user.role === 'teacher' ? '/teacher' : '/dashboard'} replace />;
+  return children;
+}
 
-import './App.css';
+function RootRedirect() {
+  const { user, loading } = useAuth();
+  if (loading) return null;
+  if (!user) return <Navigate to="/login" replace />;
+  return <Navigate to={user.role === 'teacher' ? '/teacher' : '/dashboard'} replace />;
+}
 
 export default function App() {
   return (
-    <UserProvider>
+    <AuthProvider>
       <BrowserRouter>
         <Routes>
-          <Route path='/' element={<NavLayout />}>
-            <Route element={<PrivateRoute />}>
-              <Route index element={<Home />} />
-            </Route>
-            <Route element={<PublicOnlyRoute />}>
-              <Route path='login' element={<Login />} />
-              <Route path='signup' element={<SignUp />} />
-              <Route
-                path='forgot-password'
-                element={<RequestPasswordReset />}
-              />
-            </Route>
-            <Route path='auth/callback' element={<AuthCallback />} />
-            <Route path='auth/reset-password' element={<ResetPassword />} />
-            <Route path='*' element={<NotFound />} />
-          </Route>
+          <Route path="/" element={<RootRedirect />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/dashboard" element={
+            <RequireAuth role="student"><Dashboard /></RequireAuth>
+          } />
+          <Route path="/workspace/:problemId" element={
+            <RequireAuth role="student"><Workspace /></RequireAuth>
+          } />
+          <Route path="/teacher" element={
+            <RequireAuth role="teacher"><TeacherDashboard /></RequireAuth>
+          } />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
-    </UserProvider>
+    </AuthProvider>
   );
 }

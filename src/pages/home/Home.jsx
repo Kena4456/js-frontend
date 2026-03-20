@@ -1,6 +1,7 @@
 import React, { useContext } from 'react';
 
 import styled from 'styled-components';
+import { Navigate } from 'react-router-dom';
 
 import { Subtitle, Title } from '@/common/components/atoms/Text';
 import UsersList from '@/common/components/users/UsersList';
@@ -22,7 +23,11 @@ const HomePage = styled.div`
 `;
 
 export default function Home() {
-  const { user } = useContext(UserContext);
+  const { user, isLoading } = useContext(UserContext);
+
+  if (isLoading) return null;
+  if (user?.role === 'instructor') return <Navigate to='/instructor' replace />;
+  if (user?.role === 'student') return <Navigate to='/workspace' replace />;
 
   return (
     <HomePage>

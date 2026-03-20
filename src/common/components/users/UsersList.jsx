@@ -59,7 +59,7 @@ export default function UsersList() {
       try {
         const token = await auth.currentUser?.getIdToken();
         const response = await fetch(
-          `${import.meta.env.VITE_BACKEND_URL}/auth/users`,
+          `${import.meta.env.VITE_BACKEND_URL}/api/auth/users`,
           {
             credentials: 'include',
             headers: {

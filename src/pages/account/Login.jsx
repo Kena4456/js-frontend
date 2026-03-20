@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { Link, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
@@ -38,9 +38,17 @@ function mapAuthCodeToMessage(authCode) {
 
 export default function Login() {
   const navigate = useNavigate();
-  const { login, googleAuth } = useUser();
+  const { user, isLoading: userLoading, login, googleAuth } = useUser();
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [waitingForRole, setWaitingForRole] = useState(false);
+
+  // Once role is loaded after login, redirect to the right place
+  useEffect(() => {
+    if (waitingForRole && !userLoading && user?.role) {
+      navigate(user.role === 'instructor' ? '/instructor' : '/workspace', { replace: true });
+    }
+  }, [waitingForRole, userLoading, user, navigate]);
 
   const [formState, setFormState] = useState({
     email: '',
@@ -59,7 +67,7 @@ export default function Login() {
 
     try {
       await login(formState.email, formState.password);
-      navigate('/', { replace: true });
+      setWaitingForRole(true);
     } catch (error) {
       setError(mapAuthCodeToMessage(error.code));
     } finally {

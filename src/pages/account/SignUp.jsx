@@ -17,6 +17,7 @@ export default function SignUp() {
   const [isLoading, setIsLoading] = useState(false);
   const { googleAuth } = useUser();
 
+  const [role, setRole] = useState('student');
   const [formState, setFormState] = useState({
     firstname: '',
     lastname: '',
@@ -65,7 +66,7 @@ export default function SignUp() {
 
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/auth/signup`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/auth/signup`,
         {
           method: 'POST',
           headers: {
@@ -77,6 +78,7 @@ export default function SignUp() {
             username: formState.username || undefined,
             firstname: formState.firstname || undefined,
             lastname: formState.lastname || undefined,
+            role,
           }),
         }
       );
@@ -105,6 +107,32 @@ export default function SignUp() {
       <Form onSubmit={handleSubmit}>
         <FormTitle>Create an account</FormTitle>
         {error && <RedSpan>{error}</RedSpan>}
+
+        {/* Role toggle */}
+        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
+          {['student', 'instructor'].map((r) => (
+            <button
+              key={r}
+              type='button'
+              onClick={() => setRole(r)}
+              style={{
+                flex: 1,
+                padding: '0.6rem',
+                borderRadius: '8px',
+                border: '2px solid',
+                borderColor: role === r ? '#6366f1' : '#e2e8f0',
+                background: role === r ? '#eef2ff' : '#fff',
+                color: role === r ? '#4338ca' : '#64748b',
+                fontWeight: 600,
+                fontSize: '0.9rem',
+                cursor: 'pointer',
+                textTransform: 'capitalize',
+              }}
+            >
+              {r === 'student' ? 'I\'m a Student' : 'I\'m an Instructor'}
+            </button>
+          ))}
+        </div>
         <Input.Text
           title='First name'
           placeholder='John'
